@@ -1,5 +1,6 @@
 # Omikuzi Gum Talk
 
+![](src/app/static/title.png)
 **軽量なトークテーマおみくじ Web アプリケーション（Python / Flask）**
 
 ---
