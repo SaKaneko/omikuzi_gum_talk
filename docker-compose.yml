@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - '8082:8000'
+    volumes:
+      - ./topics:/app/topics
+    environment:
+      - FLASK_ENV=production
+      - TOPICS_DIR=/app/topics
+    command: >
+      python -u -m src.app.main

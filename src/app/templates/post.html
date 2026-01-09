@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}話題投稿{% endblock %}
+{% block content %}
+  <h2>話題を投稿する</h2>
+  <form id="postForm">
+    <div>
+      <label>題名</label><br>
+      <input type="text" name="title" id="title" required style="width:100%">
+    </div>
+    <div>
+      <label>本文 (Markdown)</label><br>
+      <textarea name="body" id="body" rows="10" style="width:100%" required></textarea>
+    </div>
+    <div>
+      <button class="btn secondary small" id="preview">Preview</button>
+      <button class="btn big" id="submit">投稿</button>
+    </div>
+  </form>
+  <h3>Preview</h3>
+  <div id="previewArea"></div>
+
+  <script>
+    document.getElementById('preview').addEventListener('click', async (e)=>{
+      e.preventDefault();
+      const body = document.getElementById('body').value;
+      const res = await fetch('/topics/preview', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({body})});
+      const html = await res.text();
+      document.getElementById('previewArea').innerHTML = html;
+    });
+
+    document.getElementById('submit').addEventListener('click', async (e)=>{
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const body = document.getElementById('body').value;
+      const res = await fetch('/topics', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({title, body})});
+      if (res.status === 201) {
+        alert('投稿しました');
+        window.location.href = '/';
+      } else {
+        const json = await res.json();
+        alert('投稿失敗: ' + (json.error || res.status));
+      }
+    });
+  </script>
+{% endblock %}

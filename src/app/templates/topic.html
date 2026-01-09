@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+  <article>
+    <h2>{{ title }}</h2>
+    <div class="topic-content">{{ content|safe }}</div>
+  </article>
+  <div>
+    <button class="btn secondary" id="deleteBtn">この話題を削除してメインに戻る</button>
+    <a class="btn secondary small" href="/">メインに戻る</a>
+  </div>
+
+  <script>
+    document.getElementById('deleteBtn').addEventListener('click', async (e)=>{
+      if (!confirm('本当に削除しますか？')) return;
+      try {
+        const res = await fetch('/topics/{{ id }}', { method: 'DELETE' });
+        if (res.status === 204) {
+          window.location.href = '/';
+        } else if (res.status === 404) {
+          alert('話題が見つかりませんでした');
+        } else {
+          const json = await res.json().catch(()=>({}));
+          alert('削除に失敗しました: ' + (json.error || res.status));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('削除中にエラーが発生しました');
+      }
+    });
+  </script>
+{% endblock %}

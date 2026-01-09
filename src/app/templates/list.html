@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}話題一覧{% endblock %}
+{% block content %}
+  <h2>話題一覧</h2>
+  <ul id="topics"></ul>
+  <script>
+    async function load() {
+      const res = await fetch('/topics', { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      const ul = document.getElementById('topics');
+      ul.innerHTML = '';
+      data.forEach(t => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a class="btn small secondary" href="/topics/${t.id}">${t.title || t.id}</a> <button class="btn small secondary" data-id="${t.id}">削除</button>`;
+        ul.appendChild(li);
+      });
+      ul.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          if (!confirm('本当に削除しますか？')) return;
+          const id = e.target.getAttribute('data-id');
+          const r = await fetch(`/topics/${id}`, {method: 'DELETE'});
+          if (r.status === 204) load(); else alert('削除失敗');
+        });
+      });
+    }
+    load();
+  </script>
+{% endblock %}

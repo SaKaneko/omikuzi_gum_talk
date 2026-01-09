@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Main - Omikuzi{% endblock %}
+{% block content %}
+  <img class="title-img" src="/static/title.png" alt="Omikuzi Gum Talk" />
+  <div class="page-center">
+    <div class="card center">
+      <div class="landing">
+        <a class="btn big" href="/omikuji" role="button" aria-label="おみくじを引く">おみくじを引く</a>
+        <a class="btn big secondary" href="/topics" role="button" aria-label="話題一覧">話題一覧</a>
+        <a class="btn big" href="/post" role="button" aria-label="話題を投稿する">話題を投稿する</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
