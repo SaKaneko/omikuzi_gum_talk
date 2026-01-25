@@ -6,8 +6,10 @@ services:
       - '8082:8000'
     volumes:
       - ./topics:/app/topics
+      - ./data:/app/data
     environment:
       - FLASK_ENV=production
       - TOPICS_DIR=/app/topics
+      - DATA_DIR=/app/data
     command: >
       python -u -m src.app.main

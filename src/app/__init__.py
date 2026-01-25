@@ -1,3 +1,4 @@
+import os
 from flask import Flask, send_from_directory
 
 
@@ -7,6 +8,8 @@ def create_app(config=None):
 
     # simple config defaults
     app.config.setdefault("TOPICS_DIR", None)
+    # prefer an explicit TOPICS_DB env var, otherwise default to data/topics.db
+    app.config.setdefault("TOPICS_DB", os.environ.get("TOPICS_DB", "data/topics.db"))
     app.config.setdefault("SECRET_KEY", "dev")
 
     # register blueprints lazily to avoid import cycles

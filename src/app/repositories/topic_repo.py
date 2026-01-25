@@ -1,95 +1,44 @@
-import os
-import re
-import tempfile
-from pathlib import Path
-from datetime import datetime
-from typing import List, Dict, Optional
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
+from typing import List, Dict, Optional, Any
 
 
 class TopicRepoError(Exception):
     pass
 
 
-class TopicRepository:
-    def __init__(self, topics_dir: Optional[str] = None):
-        if topics_dir:
-            self.topics_dir = Path(topics_dir)
-        else:
-            # default to project-root/topics
-            self.topics_dir = Path(__file__).resolve().parents[3] / "topics"
-        self.topics_dir.mkdir(parents=True, exist_ok=True)
+class TopicRepository(ABC):
+    """Abstract interface for topic storage backends.
 
-    def _safe_id(self, filename: str) -> str:
-        return Path(filename).stem
+    Concrete implementations may store topics on the filesystem, in sqlite,
+    or other backends.
+    """
 
-    def list_topics(self) -> List[Dict[str, str]]:
-        out = []
-        for p in sorted(self.topics_dir.glob("*.md")):
-            try:
-                with p.open("r", encoding="utf-8") as f:
-                    first = f.readline().strip()
-            except Exception:
-                first = ""
-            out.append({"id": self._safe_id(p.name), "title": first})
-        return out
+    @abstractmethod
+    def list_topics(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        pass
 
-    def get_topic(self, id: str) -> Dict[str, str]:
-        if not re.match(r"^[A-Za-z0-9_\-]+$", id):
-            raise TopicRepoError("invalid id")
-        path = self._path_for_id(id)
-        if not path.exists():
-            raise TopicRepoError("not found")
-        with path.open("r", encoding="utf-8") as f:
-            lines = f.readlines()
-        title = lines[0].strip() if lines else ""
-        body = "".join(lines[1:]).lstrip("\n") if len(lines) > 1 else ""
-        return {"id": id, "title": title, "body": body}
+    @abstractmethod
+    def get_topic(self, id: str) -> Dict[str, Any]:
+        pass
 
-    def create_topic(self, title: str, body: str) -> str:
-        if not title or not body:
-            raise TopicRepoError("title and body required")
-        # safe slug
-        slug = (
-            re.sub(r"[^A-Za-z0-9\-]+", "-", title.strip())[:50].strip("-").lower()
-            or "topic"
-        )
-        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        filename = f"{ts}_{slug}.md"
-        dest = self.topics_dir / filename
+    @abstractmethod
+    def create_topic(self, title: str, body: str) -> Any:
+        pass
 
-        tmp = None
-        try:
-            fd, tmp_path = tempfile.mkstemp(
-                prefix="topic_", suffix=".tmp", dir=str(self.topics_dir)
-            )
-            tmp = Path(tmp_path)
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                f.write(title.strip() + "\n")
-                f.write(body.strip() + "\n")
-            # atomic replace
-            os.replace(str(tmp), str(dest))
-            return self._safe_id(dest.name)
-        except Exception as e:
-            if tmp and tmp.exists():
-                try:
-                    tmp.unlink()
-                except Exception:
-                    pass
-            raise TopicRepoError(str(e))
-
+    @abstractmethod
     def delete_topic(self, id: str) -> bool:
-        path = self._path_for_id(id)
-        if not path.exists():
-            raise TopicRepoError("not found")
-        try:
-            path.unlink()
-            return True
-        except Exception as e:
-            raise TopicRepoError(str(e))
+        pass
 
-    def _path_for_id(self, id: str) -> Path:
-        # find matching file by stem
-        for p in self.topics_dir.glob("*.md"):
-            if p.stem == id:
-                return p
-        return self.topics_dir / (id + ".md")
+    @abstractmethod
+    def random_topic_id(self) -> Optional[Any]:
+        pass
+
+    @abstractmethod
+    def search(self, query: str, limit: int = 50) -> List[Dict[str, Any]]:
+        pass
+
+
+__all__ = ["TopicRepository", "FileTopicRepository", "TopicRepoError"]

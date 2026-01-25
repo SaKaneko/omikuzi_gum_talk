@@ -1,6 +1,8 @@
 from flask import Blueprint, current_app, request, jsonify, render_template, abort
 
-from ..repositories.topic_repo import TopicRepository, TopicRepoError
+from ..repositories.topic_repo_sqlite import SQLiteTopicRepository
+from ..repositories.topic_repo_file import FileTopicRepository
+from ..repositories.topic_repo import TopicRepoError
 from ..services.omikuji import OmikujiService
 from ..utils.markdown import MarkdownRenderer
 
@@ -8,8 +10,12 @@ bp = Blueprint("topics", __name__)
 
 
 def _repo():
+    # Prefer a configured SQLite DB if provided; fall back to filesystem repo.
+    db_path = current_app.config.get("TOPICS_DB")
+    if db_path:
+        return SQLiteTopicRepository(db_path=db_path)
     topics_dir = current_app.config.get("TOPICS_DIR")
-    return TopicRepository(topics_dir)
+    return FileTopicRepository(topics_dir)
 
 
 @bp.route("/")

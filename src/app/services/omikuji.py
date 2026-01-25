@@ -1,15 +1,12 @@
 import random
 from typing import Optional
-
-from ..repositories.topic_repo import TopicRepository
+from ..repositories.topic_repo_sqlite import SQLiteTopicRepository
 
 
 class OmikujiService:
-    def __init__(self, repo: Optional[TopicRepository] = None):
-        self.repo = repo or TopicRepository()
+    def __init__(self, repo: Optional[SQLiteTopicRepository] = None):
+        self.repo = repo or SQLiteTopicRepository()
 
     def pick_random_topic(self) -> Optional[str]:
-        topics = self.repo.list_topics()
-        if not topics:
-            return None
-        return random.choice(topics)["id"]
+        rid = self.repo.random_topic_id()
+        return str(rid) if rid is not None else None
