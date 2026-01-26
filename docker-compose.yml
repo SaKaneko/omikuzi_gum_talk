@@ -12,4 +12,4 @@ services:
       - TOPICS_DIR=/app/topics
       - DATA_DIR=/app/data
     command: >
-      python -u -m src.app.main
+      python -u -m app.main

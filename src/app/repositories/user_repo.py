@@ -11,8 +11,13 @@ class UserRepository(ABC):
     """
 
     @abstractmethod
-    def create_user(self, username: str, password: str) -> int:
-        """Create a user and return its id."""
+    def create_user(
+        self, username: str, password: str, roles: list | None = None
+    ) -> int:
+        """Create a user and return its id.
+
+        `roles` is an optional list of role names assigned to the user.
+        """
 
     @abstractmethod
     def get_user(self, username: str) -> Optional[Dict]:

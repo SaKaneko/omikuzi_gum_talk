@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS users (
   username TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   salt TEXT NOT NULL,
-  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+  updated_at DATETIME,
+  roles TEXT NOT NULL DEFAULT ''
 );
 
 COMMIT;

@@ -34,23 +34,35 @@ class SQLiteUserRepository(UserRepository):
               username TEXT NOT NULL UNIQUE,
               password_hash TEXT NOT NULL,
               salt TEXT NOT NULL,
-              created_at DATETIME NOT NULL DEFAULT (datetime('now'))
+              created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+              updated_at DATETIME,
+              roles TEXT NOT NULL DEFAULT ''
             );
             """
         )
         conn.commit()
         conn.close()
 
-    def create_user(self, username: str, password: str) -> int:
+    def create_user(
+        self, username: str, password: str, roles: list | None = None
+    ) -> int:
         """Create a new user. Returns the inserted user id."""
         salt = self.pwm.generate_salt()
         password_hash = self.pwm.hash_password(password, salt)
         conn = self._get_conn()
         cur = conn.cursor()
         try:
+            roles = roles or ["user"]
+            roles_str = ",".join(roles)
             cur.execute(
-                "INSERT INTO users (username, password_hash, salt, created_at) VALUES (?, ?, ?, ?)",
-                (username, password_hash, salt, datetime.utcnow().isoformat()),
+                "INSERT INTO users (username, password_hash, salt, created_at, roles) VALUES (?, ?, ?, ?, ?)",
+                (
+                    username,
+                    password_hash,
+                    salt,
+                    datetime.utcnow().isoformat(),
+                    roles_str,
+                ),
             )
             conn.commit()
             user_id = cur.lastrowid
@@ -66,7 +78,11 @@ class SQLiteUserRepository(UserRepository):
         conn.close()
         if not row:
             return None
-        return dict(row)
+        d = dict(row)
+        # normalize roles column into a list
+        raw = d.get("roles") or ""
+        d["roles"] = [r for r in (raw.split(",") if raw else []) if r]
+        return d
 
     def verify_user(self, username: str, password: str) -> bool:
         user = self.get_user(username)

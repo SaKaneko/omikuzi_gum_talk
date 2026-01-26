@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}登録{% endblock %}
+
+{% block content %}
+  <h2>ユーザー登録</h2>
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+  <form method="post">
+    <label>ユーザー名: <input name="username" /></label><br />
+    <label>パスワード: <input name="password" type="password"/></label><br />
+    <button type="submit">登録</button>
+  </form>
+{% endblock %}

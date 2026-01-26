@@ -10,6 +10,18 @@
   <body>
     <header>
       <h1><a href="/">Omikuzi Gum Talk</a></h1>
+      <nav>
+        {% if session.get('username') %}
+          <span>ようこそ {{ session.get('username') }}</span>
+          {% if 'admin' in session.get('roles', []) %}
+            <a href="{{ url_for('auth.admin') }}">管理</a>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}">ログアウト</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">ログイン</a>
+          <a href="{{ url_for('auth.register') }}">登録</a>
+        {% endif %}
+      </nav>
     </header>
     <main>
       {% block content %}{% endblock %}

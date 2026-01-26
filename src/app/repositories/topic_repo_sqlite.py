@@ -26,7 +26,7 @@ class SQLiteTopicRepository(TopicRepository):
     """SQLite-backed implementation of `TopicRepository`."""
 
     def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path or os.environ.get("TOPICS_DB", "data/topics.db")
+        self.db_path = db_path or os.environ.get("TOPICS_DB", "data/data.db")
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
 
     def _get_conn(self) -> sqlite3.Connection:

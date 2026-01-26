@@ -32,7 +32,12 @@ python3 -m src.app.main
 - Docker で簡単に起動できます（ホストの `topics/` をコンテナにマウントして永続化）:
 
 ```bash
-docker compose build
+docker compose build \
+  --build-arg SECRET_KEY="$(python - <<'PY'
+import secrets
+print(secrets.token_urlsafe(48))
+PY
+)"
 docker compose up
 # アクセス: http://localhost:8082/  (compose で '8082:8000' をマッピングしています)
 ```

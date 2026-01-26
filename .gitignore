@@ -1,1 +1,4 @@
 /topics/*
+/app_env/*
+
+*.pyc
