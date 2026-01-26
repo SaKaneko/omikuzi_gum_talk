@@ -4,6 +4,10 @@
   <h2>話題一覧</h2>
   <ul id="topics"></ul>
   <script>
+    // サーバー側レンダリング時に is_admin を埋め込む
+    const IS_ADMIN = {{ 'true' if is_admin else 'false' }};
+  </script>
+  <script>
     async function load() {
       const res = await fetch('/topics', { headers: { 'Accept': 'application/json' } });
       const data = await res.json();
@@ -11,17 +15,26 @@
       ul.innerHTML = '';
       data.forEach(t => {
         const li = document.createElement('li');
-        li.innerHTML = `<a class="btn small secondary" href="/topics/${t.id}">${t.title || t.id}</a> <button class="btn small secondary" data-id="${t.id}">削除</button>`;
+        let html = '';
+        if (IS_ADMIN) {
+          html = `<a class="btn small secondary" href="/topics/${t.id}">${t.title || t.id}</a>`;
+        } else {
+          html = `<span class="topic-title">${t.title || t.id}</span>`;
+        }
+        if (IS_ADMIN) html += ` <button class="btn small secondary" data-id="${t.id}">削除</button>`;
+        li.innerHTML = html;
         ul.appendChild(li);
       });
-      ul.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          if (!confirm('本当に削除しますか？')) return;
-          const id = e.target.getAttribute('data-id');
-          const r = await fetch(`/topics/${id}`, {method: 'DELETE'});
-          if (r.status === 204) load(); else alert('削除失敗');
+      if (IS_ADMIN) {
+        ul.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            if (!confirm('本当に削除しますか？')) return;
+            const id = e.target.getAttribute('data-id');
+            const r = await fetch(`/topics/${id}`, {method: 'DELETE'});
+            if (r.status === 204) load(); else alert('削除失敗');
+          });
         });
-      });
+      }
     }
     load();
   </script>

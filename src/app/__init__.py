@@ -1,5 +1,5 @@
 import os
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, render_template
 
 
 def create_app(config=None):
@@ -48,5 +48,10 @@ def create_app(config=None):
             return send_from_directory(
                 app.static_folder, "favicon.svg", mimetype="image/svg+xml"
             )
+
+    # render a user-friendly 403 Forbidden page
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template("403.html"), 403
 
     return app

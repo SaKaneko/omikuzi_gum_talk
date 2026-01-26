@@ -1,10 +1,21 @@
-from flask import Blueprint, current_app, request, jsonify, render_template, abort
+from flask import (
+    Blueprint,
+    current_app,
+    request,
+    jsonify,
+    render_template,
+    abort,
+    session,
+)
 
 from ..repositories.topic_repo_sqlite import SQLiteTopicRepository
 from ..repositories.topic_repo_file import FileTopicRepository
 from ..repositories.topic_repo import TopicRepoError
 from ..services.omikuji import OmikujiService
 from ..utils.markdown import MarkdownRenderer
+
+# 認可デコレータをインポート
+from .auth import require_roles, require_login
 
 bp = Blueprint("topics", __name__)
 
@@ -24,6 +35,7 @@ def index():
 
 
 @bp.route("/omikuji")
+@require_roles(["admin"])
 def omikuji():
     service = OmikujiService(_repo())
     tid = service.pick_random_topic()
@@ -31,8 +43,6 @@ def omikuji():
     if request.accept_mimetypes.accept_html:
         return render_template("omikuji.html")
 
-    service = OmikujiService(_repo())
-    tid = service.pick_random_topic()
     if not tid:
         return jsonify({"error": "no topics"}), 404
     return jsonify({"id": tid})
@@ -44,7 +54,9 @@ def list_topics():
         topics = _repo().list_topics()
         # Serve HTML page when browser requests HTML; otherwise return JSON list
         if request.accept_mimetypes.accept_html:
-            return render_template("list.html")
+            # is_admin フラグをテンプレートに渡す
+            is_admin = "admin" in (session.get("roles") or [])
+            return render_template("list.html", is_admin=is_admin)
         try:
             topics = _repo().list_topics()
             return jsonify(topics)
@@ -63,10 +75,14 @@ def get_topic(id):
     renderer = MarkdownRenderer()
     content = renderer.render(t.get("body", ""))
     # render a template showing the title and rendered content
-    return render_template("topic.html", title=t.get("title"), content=content, id=id)
+    is_admin = "admin" in (session.get("roles") or [])
+    return render_template(
+        "topic.html", title=t.get("title"), content=content, id=id, is_admin=is_admin
+    )
 
 
 @bp.route("/topics", methods=["POST"])
+@require_login
 def create_topic():
     data = request.get_json() if request.is_json else request.form
     title = data.get("title")
@@ -89,12 +105,14 @@ def preview_topic():
 
 
 @bp.route("/post", methods=["GET"])
+@require_login
 def post_page():
     # Render the posting page
     return render_template("post.html")
 
 
 @bp.route("/topics/<id>", methods=["DELETE"])
+@require_roles(["admin"])
 def delete_topic(id):
     try:
         _repo().delete_topic(id)

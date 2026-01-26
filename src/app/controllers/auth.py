@@ -99,4 +99,15 @@ def admin():
     return render_template("admin.html")
 
 
-__all__ = ["bp"]
+# --- 追加: ログイン済みチェック用デコレータ ---
+def require_login(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        if not session.get("username"):
+            return redirect(url_for("auth.login"))
+        return f(*args, **kwargs)
+
+    return wrapped
+
+
+__all__ = ["bp", "require_roles", "require_login"]

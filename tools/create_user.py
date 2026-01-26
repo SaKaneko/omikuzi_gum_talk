@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     db_path = args.db
     ensure_db(db_path)
-    roles = [r for r in args.roles.split(",") if r] if args.roles else ["user"]
+    roles = [r for r in args.roles.split(",") if r] if args.roles else ["admin"]
     try:
         uid = create_user(db_path, args.username, args.password, roles)
         print(f"created user id: {uid}")

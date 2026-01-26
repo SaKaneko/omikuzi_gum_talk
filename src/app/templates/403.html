@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}アクセス権限がありません{% endblock %}
+{% block content %}
+  <h2>アクセス権限がありません</h2>
+  <p>この操作を実行するための権限がありません。権限のあるアカウントでログインするか、管理者にお問い合わせください。</p>
+  <p>
+    <a class="btn" href="/">メインへ戻る</a>
+    {% if not session.get('username') %}
+      <a class="btn" href="{{ url_for('auth.login') }}">ログイン</a>
+    {% endif %}
+  </p>
+{% endblock %}
